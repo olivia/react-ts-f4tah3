@@ -49,7 +49,6 @@ const lineIdxIntersects = ([l1s, l1e], [l2s, l2e]) => {
   const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
   // parallel or coincident
   if (denominator === 0) {
-    //console.log(denominator);
     return pointIsOnLine(l2s, [l1s, l1e]) || pointIsOnLine(l2e, [l1s, l1e]);
   }
   const px =
