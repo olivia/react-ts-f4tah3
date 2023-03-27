@@ -7,6 +7,7 @@ import { cartToIdx, idxToXY, xyToCart } from './line-utils';
 import { constellationDistances, groupDistances, shapesScore } from './scoring';
 import { ShapeGrid } from './shape-grid';
 import { ShapeStats } from './shape-stats';
+import { ShapeView } from './shape-view';
 
 export default function App() {
   const [a, sa] = React.useState(0);
@@ -20,7 +21,7 @@ export default function App() {
     let counter = 0;
     let res;
     let maxResScore = -1;
-    while (counter++ < iterations) {
+    while (maxResScore < 500) {
       const tempRes = randomUniqArr(
         shapeNum * 3,
         randomPathFnCreator({ maxStep })
@@ -50,14 +51,8 @@ export default function App() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-        <div>
-          <ShapeGrid showPaths={showPaths} points={shapePoints} links={links} />
-          <ShapeStats shapePoints={shapePoints} />
-        </div>
-        <div>
-          <ShapeGrid showPaths={false} points={randomPoints} links={links} />
-          <ShapeStats shapePoints={randomPoints} />
-        </div>
+        <ShapeView showPaths={showPaths} points={shapePoints} links={links} />
+        <ShapeView showPaths={false} points={randomPoints} links={links} />
       </div>
       <div>
         <button onClick={() => sa(a + 1)}>Refresh</button>
