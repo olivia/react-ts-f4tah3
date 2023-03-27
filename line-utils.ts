@@ -32,7 +32,8 @@ export const cartToIdx = ([x, y]: [number, number]): number => {
   return xyToIdx(cartToXY([x, y]));
 };
 
-export const getLinkDir = ([l1s, l1e]) => {
+export const getLinkDir = ([l1sIdx, l1eIdx]) => {
+  const [l1s, l1e] = [idxToXY(l1sIdx), idxToXY(l1eIdx)];
   const [diffx, diffy] = [l1e[0] - l1s[0], l1e[1], l1s[1]];
 
   if (diffx === 0) {
@@ -45,7 +46,6 @@ export const getLinkDir = ([l1s, l1e]) => {
     return diffy > 0 ? DIRECTIONS.SW : DIRECTIONS.NW;
   }
 };
-
 
 const pointIsOnLine = (p, [l1s, l1e]) => {
   const [[px, py], [x1, y1], [x2, y2]] = [p, l1s, l1e].map(idxToXY);
@@ -70,7 +70,12 @@ const lineIdxIntersects = ([l1s, l1e], [l2s, l2e]) => {
   const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
   // parallel or coincident
   if (denominator === 0) {
-    return pointIsOnLine(l2s, [l1s, l1e]) || pointIsOnLine(l2e, [l1s, l1e]);
+    return (
+      pointIsOnLine(l2s, [l1s, l1e]) ||
+      pointIsOnLine(l2e, [l1s, l1e]) ||
+      pointIsOnLine(l1s, [l2s, l2e]) ||
+      pointIsOnLine(l1e, [l2s, l2e])
+    );
   }
   const px =
     ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) /
@@ -108,7 +113,7 @@ const pDir = ['NW', 'NE', 'SE', 'SW', 'N', 'E', 'S', 'W'];
 export const canInsert = (newLine, allLinks) => {
   for (const l of allLinks) {
     // This need to
-    if (l[1] === newLine[0]) {
+    if (l[1] === newLine[0] || newLine[0] === l[0]) {
       //console.log('skipping for now');
       continue;
     }

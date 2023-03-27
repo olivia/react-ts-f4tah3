@@ -10,6 +10,7 @@ import {
   ALLOFFSETS,
   DOFFSETS,
   COFFSETS,
+  DIRECTIONS,
 } from './constants';
 import {
   canInsert,
@@ -79,7 +80,6 @@ export const randomUniqArr = (n, randGen) => {
   if (maxiters < 0) {
     console.log('exhausted rand function');
   }
-  console.log(shapePoints);
   return [shapePointsToCart(shapePoints), shapeLinksToCart(shapeLinks)];
 };
 
@@ -105,25 +105,29 @@ const offsetPivotPoint = (pivotPoint, dir, magnitude) => {
 };
 
 const chooseOffset = (skipList, lastLink) => {
-  const linkDir = getLinkDir(lastLink);
+  const linkDir = lastLink === undefined ? DIRECTIONS.E : getLinkDir(lastLink);
+
   const doffsetIdx = DOFFSETS.indexOf(linkDir);
   const coffsetIdx = COFFSETS.indexOf(linkDir);
-  const unpreferredOffset =
+  const unpreferredOffsetIndices =
     doffsetIdx != -1
-      ? [DOFFSETS[doffsetIdx], DOFFSETS[(doffsetIdx + 2) % 4]]
-      : [COFFSETS[4 + coffsetIdx], COFFSETS[4 + ((coffsetIdx + 2) % 4)]];
-  const nonskippedOffset = ALLOFFSETS.filter(
-    (offset, i) =>
-      skipList.indexOf(i) === -1 && unpreferredOffset.indexOf(offset) !== -1
-  );
+      ? [doffsetIdx, (doffsetIdx + 2) % 4]
+      : [4 + coffsetIdx, 4 + ((coffsetIdx + 2) % 4)];
+  const nonskippedOffset = ALLOFFSETS.filter((_, i) => {
+    return skipList.indexOf(i) === -1;
+  });
+  const unpreferredOffset = ALLOFFSETS.filter((_, i) => {
+    return (
+      skipList.indexOf(i) === -1 && unpreferredOffsetIndices.indexOf(i) === -1
+    );
+  });
   const randArr = [
     ...nonskippedOffset,
-    ...nonskippedOffset,
+    ...unpreferredOffset,
     ...unpreferredOffset,
   ];
-  console.log('memoe', randArr);
 
-  return randArr[Math.round(Math.random() * (randArr.length - 1))];
+  return chooseRandomElem(randArr);
 };
 
 export const randomWalk = ({
@@ -136,13 +140,29 @@ export const randomWalk = ({
   return [ALLOFFSETS.indexOf(offset), [pivotPoint, perturbedPoint]] as const;
 };
 
+export function chooseRandomElem<T>(a: T[]): T {
+  return a[~~(Math.random() * a.length)];
+}
+
+function fisherYatesShuffle<T>(a: T[]): T[] {
+  const arr = [...a];
+  for (let i = 0; i < arr.length; i++) {
+    const swapIdx = ~~(Math.random() * arr.length);
+    let temp = arr[swapIdx];
+    arr[swapIdx] = arr[i];
+    arr[i] = temp;
+  }
+  return arr;
+}
+
 export const randomPathFnCreator = ({ maxStep }) => {
   const fn = (points, links, allPoints, allLinks) => {
     let iterations = 0;
     let skipList = [];
     let pivotPointOffset = 0;
-    let pivotPoint = points[points.length - 1];
 
+    points = fisherYatesShuffle(points);
+    let pivotPoint = points[points.length - 1];
     while (iterations <= 100) {
       if (points.length === 0) {
         const r = randIdx();
@@ -166,15 +186,17 @@ export const randomPathFnCreator = ({ maxStep }) => {
             allPoints.indexOf(newLine[1]) == -1 &&
             canInsert(newLine, allLinks)
           ) {
+            if (pivotPointOffset > 0) {
+            }
             return [pivotPoint, newLine[1]];
           } else {
-            magnitude = Math.floor(magnitude - 2);
+            magnitude = magnitude - 1 - Math.floor(Math.random() * 2);
           }
         }
 
         if (skipList.length === 7) {
           if (points.length - 1 <= pivotPointOffset) {
-            throw new Error('Tried everything: ' + pivotPointOffset);
+            throw new Error('pivot: Tried everything: ' + pivotPointOffset);
           }
           skipList = [];
           pivotPointOffset++;

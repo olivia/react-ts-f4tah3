@@ -1,4 +1,4 @@
-export const [height, width, dx, dy] = [480, 800, 40, 40];
+export const [height, width, dx, dy] = [240, 400, 20, 20];
 export const [minx, maxx, miny, maxy] = [0, width / dx, 0, height / dy];
 
 export const DIRECTIONS = {

@@ -2,59 +2,83 @@ import * as React from 'react';
 import './style.css';
 import { maxx, height, width, dx, dy } from './constants';
 import { Circles, LinePath, ShapePath, Squares, Triangles } from './shape-path';
-import { randomPathFnCreator, randomUniqArr } from './random';
-import { cartToIdx } from './line-utils';
+import { chooseRandomElem, randomPathFnCreator, randomUniqArr } from './random';
+import { cartToIdx, idxToXY, xyToCart } from './line-utils';
+import { constellationDistances, groupDistances, shapesScore } from './scoring';
+import { ShapeGrid } from './shape-grid';
+import { ShapeStats } from './shape-stats';
 
 export default function App() {
   const [a, sa] = React.useState(0);
+  const [iterations, setIterations] = React.useState(50);
+
   const [maxStep, setMaxStep] = React.useState(20);
   const [shapeNum, setShapeNum] = React.useState(10);
   const [showPaths, setShowPath] = React.useState(false);
 
   const [shapePoints, links] = React.useMemo(() => {
-    let iterations = 10;
+    let counter = 0;
     let res;
-    while (iterations--) {
-      res = randomUniqArr(shapeNum * 3, randomPathFnCreator({ maxStep }));
-
-      if (res[0].length > shapeNum * 2) {
-        return res;
+    let maxResScore = -1;
+    while (counter++ < iterations) {
+      const tempRes = randomUniqArr(
+        shapeNum * 3,
+        randomPathFnCreator({ maxStep })
+      );
+      const tempScore = shapesScore(tempRes[0]);
+      if (tempScore > maxResScore) {
+        maxResScore = tempScore;
+        res = tempRes;
       }
     }
     return res;
-  }, [a, shapeNum, maxStep]);
-  const hgrid = Array(height / dy)
-    .fill(0)
-    .map((_, i) => `M0 ${i * dy} L${width} ${i * dy}`)
-    .join(' ');
+  }, [a, shapeNum, maxStep, iterations]);
 
-  const vgrid = Array(width / dx)
-    .fill(0)
-    .map((_, i) => `M${i * dx} 0 L${i * dx} ${height}`)
-    .join(' ');
+  const randomPoints = React.useMemo(() => {
+    const points = { circle: [], square: [], triangle: [] };
+    const keys = Object.keys(points);
+    Array((width * height) / dx / dy)
+      .fill(0)
+      .forEach((_, i) => {
+        if (Math.random() < 0.15) {
+          points[chooseRandomElem(keys)].push(xyToCart(idxToXY(i)));
+        }
+      });
+    return points;
+  }, [a]);
 
   return (
     <div>
-      <svg width={width} height={height} style={{ background: 'grey' }}>
-        <path d={hgrid} stroke="white" />
-        <path d={vgrid} stroke="white" />
-        {showPaths && (
-          <React.Fragment>
-            <LinePath color={'red'} links={links.circle} />
-            <LinePath color={'green'} links={links.square} />
-            <LinePath color={'blue'} links={links.triangle} />
-          </React.Fragment>
-        )}
-        <Circles points={shapePoints.circle} />
-        <Triangles points={shapePoints.triangle} />
-        <Squares points={shapePoints.square} />
-      </svg>
+      <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+        <div>
+          <ShapeGrid showPaths={showPaths} points={shapePoints} links={links} />
+          <ShapeStats shapePoints={shapePoints} />
+        </div>
+        <div>
+          <ShapeGrid showPaths={false} points={randomPoints} links={links} />
+          <ShapeStats shapePoints={randomPoints} />
+        </div>
+      </div>
       <div>
         <button onClick={() => sa(a + 1)}>Refresh</button>
       </div>
       <div>
         <button onClick={() => setShowPath(!showPaths)}>Toggle Paths</button>
       </div>
+      <div>
+        <label>
+          Iterations = {iterations}
+          <input
+            value={iterations}
+            onChange={(a) => setIterations(+a.target.value)}
+            min="0"
+            max={500}
+            step="1"
+            type="range"
+          />
+        </label>
+      </div>
+
       <div>
         <label>
           ShapeNum = {shapeNum}
