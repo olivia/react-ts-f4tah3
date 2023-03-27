@@ -3,6 +3,7 @@ import './style.css';
 import { maxx, height, width, dx, dy } from './constants';
 import { Circles, LinePath, ShapePath, Squares, Triangles } from './shape-path';
 import { randomPathFnCreator, randomUniqArr } from './random';
+import { cartToIdx } from './line-utils';
 
 export default function App() {
   const [a, sa] = React.useState(0);
@@ -80,6 +81,15 @@ export default function App() {
           />
         </label>
       </div>
+      <pre>
+        {Buffer.from(
+          [
+            shapePoints.circle.map(cartToIdx).join('.'),
+            shapePoints.square.map(cartToIdx).join('.'),
+            shapePoints.triangle.map(cartToIdx).join('.'),
+          ].join(':')
+        ).toString('base64')}
+      </pre>
     </div>
   );
 }

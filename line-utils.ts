@@ -14,6 +14,14 @@ export const xyToCart = ([x, y]: [number, number]): [number, number] => {
   return [(x + 0.5) * dx, (y + 0.5) * dy];
 };
 
+export const cartToXY = ([x, y]: [number, number]): [number, number] => {
+  return [x / dx - 0.5, y / dy - 0.5];
+};
+
+export const cartToIdx = ([x, y]: [number, number]): number => {
+  return xyToIdx(cartToXY([x, y]));
+};
+
 const getLinkDir = ([l1s, l1e]) => {
   const [diffx, diffy] = [l1e[0] - l1s[0], l1e[1], l1s[1]];
 };

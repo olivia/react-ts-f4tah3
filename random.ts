@@ -130,11 +130,10 @@ export const randomPathFnCreator = ({ maxStep }) => {
         if (allPoints.indexOf(r) >= 0) {
           continue;
         }
-        console.log('returned first');
         return [undefined, r];
       } else {
         let offsetAttempt, newLine;
-        let magnitude = maxStep;
+        let magnitude = Math.max(1, maxStep - ~~(2 * Math.random()));
         const offset = chooseOffset(skipList);
         while (magnitude > 0) {
           [offsetAttempt, newLine] = randomWalk({
@@ -148,7 +147,6 @@ export const randomPathFnCreator = ({ maxStep }) => {
             allPoints.indexOf(newLine[1]) == -1 &&
             canInsert(newLine, allLinks)
           ) {
-            console.log('returned newline', newLine[1]);
             return [pivotPoint, newLine[1]];
           } else {
             magnitude = Math.floor(magnitude - 2);
