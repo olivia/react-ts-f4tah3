@@ -1,4 +1,14 @@
-import { width, dx, dy, height, minx, miny, maxx, maxy } from './constants';
+import {
+  width,
+  dx,
+  dy,
+  height,
+  minx,
+  miny,
+  maxx,
+  maxy,
+  DIRECTIONS,
+} from './constants';
 
 export const idxToXY = (idx: number): [number, number] => {
   const cols = width / dx;
@@ -22,9 +32,20 @@ export const cartToIdx = ([x, y]: [number, number]): number => {
   return xyToIdx(cartToXY([x, y]));
 };
 
-const getLinkDir = ([l1s, l1e]) => {
+export const getLinkDir = ([l1s, l1e]) => {
   const [diffx, diffy] = [l1e[0] - l1s[0], l1e[1], l1s[1]];
+
+  if (diffx === 0) {
+    return diffy > 0 ? DIRECTIONS.S : DIRECTIONS.N;
+  } else if (diffy === 0) {
+    return diffx > 0 ? DIRECTIONS.E : DIRECTIONS.W;
+  } else if (diffx > 0) {
+    return diffy > 0 ? DIRECTIONS.SE : DIRECTIONS.NE;
+  } else if (diffx < 0) {
+    return diffy > 0 ? DIRECTIONS.SW : DIRECTIONS.NW;
+  }
 };
+
 
 const pointIsOnLine = (p, [l1s, l1e]) => {
   const [[px, py], [x1, y1], [x2, y2]] = [p, l1s, l1e].map(idxToXY);

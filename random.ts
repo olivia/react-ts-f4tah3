@@ -9,8 +9,15 @@ import {
   miny,
   ALLOFFSETS,
   DOFFSETS,
+  COFFSETS,
 } from './constants';
-import { canInsert, idxToXY, xyToCart, xyToIdx } from './line-utils';
+import {
+  canInsert,
+  getLinkDir,
+  idxToXY,
+  xyToCart,
+  xyToIdx,
+} from './line-utils';
 
 const randIdx = () =>
   Math.round(Math.random() * (-1 + (height * width) / (dx * dy)));
@@ -97,14 +104,26 @@ const offsetPivotPoint = (pivotPoint, dir, magnitude) => {
   return xyToIdx(newXY as [number, number]);
 };
 
-const chooseOffset = (skipList) => {
+const chooseOffset = (skipList, lastLink) => {
+  const linkDir = getLinkDir(lastLink);
+  const doffsetIdx = DOFFSETS.indexOf(linkDir);
+  const coffsetIdx = COFFSETS.indexOf(linkDir);
+  const unpreferredOffset =
+    doffsetIdx != -1
+      ? [DOFFSETS[doffsetIdx], DOFFSETS[(doffsetIdx + 2) % 4]]
+      : [COFFSETS[4 + coffsetIdx], COFFSETS[4 + ((coffsetIdx + 2) % 4)]];
   const nonskippedOffset = ALLOFFSETS.filter(
-    (_, i) => skipList.indexOf(i) === -1
+    (offset, i) =>
+      skipList.indexOf(i) === -1 && unpreferredOffset.indexOf(offset) !== -1
   );
-
-  return nonskippedOffset[
-    Math.round(Math.random() * (nonskippedOffset.length - 1))
+  const randArr = [
+    ...nonskippedOffset,
+    ...nonskippedOffset,
+    ...unpreferredOffset,
   ];
+  console.log('memoe', randArr);
+
+  return randArr[Math.round(Math.random() * (randArr.length - 1))];
 };
 
 export const randomWalk = ({
@@ -134,7 +153,7 @@ export const randomPathFnCreator = ({ maxStep }) => {
       } else {
         let offsetAttempt, newLine;
         let magnitude = Math.max(1, maxStep - ~~(2 * Math.random()));
-        const offset = chooseOffset(skipList);
+        const offset = chooseOffset(skipList, links[links.length - 1]);
         while (magnitude > 0) {
           [offsetAttempt, newLine] = randomWalk({
             pivotPoint,
