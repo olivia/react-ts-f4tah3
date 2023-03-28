@@ -21,7 +21,7 @@ export default function App() {
     let counter = 0;
     let res;
     let maxResScore = -1;
-    while (maxResScore < 500) {
+    while (maxResScore < 1000) {
       const tempRes = randomUniqArr(
         shapeNum * 3,
         randomPathFnCreator({ maxStep })
